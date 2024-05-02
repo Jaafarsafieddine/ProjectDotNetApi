@@ -11,6 +11,7 @@ namespace ProjectDotNet.Models
         public string carType { get; set; }
         public string carColor { get; set; }
         public int carPrice { get; set; }
+        public string carImage { get; set; }
         public int carQuantity { get; set; }
 
         public int categoryId { get; set; }
