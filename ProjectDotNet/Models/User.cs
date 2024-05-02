@@ -10,7 +10,6 @@ namespace ProjectDotNet.Models
         public string Password { get; set; }
         public string Email { get; set; }
         public int phoneNumber { get; set; }
-        public int cartId { get; set; }
 
     }
 }
