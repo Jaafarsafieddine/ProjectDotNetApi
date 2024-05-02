@@ -2,5 +2,8 @@
 {
     public class SearchHistory
     {
+        public int Id { get; set; }
+        public int userId { get; set; }
+        public List<string> searchHistory { get; set; }
     }
 }

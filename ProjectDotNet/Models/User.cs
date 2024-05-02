@@ -1,4 +1,6 @@
-﻿namespace ProjectDotNet.Models
+﻿using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.Http.HttpResults;
+namespace ProjectDotNet.Models
 {
     public class User
     {
