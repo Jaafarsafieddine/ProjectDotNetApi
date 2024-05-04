@@ -157,5 +157,68 @@ namespace ProjectDotNet.Controllers
             return Ok("Car removed from cart successfully.");
         }
 
+
+
+        [HttpPost("purchaseCart")]
+        [Authorize] // Ensures that only authenticated users can access this endpoint
+        public async Task<ActionResult> PurchaseCart()
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userIdString))
+            {
+                return Unauthorized("User must be logged in.");
+            }
+
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return BadRequest("Invalid user ID format.");
+            }
+
+            // Retrieve the user's cart with all related cart details and cars
+            var cart = await _context.AddToCarts
+                                     .Include(c => c.AddToCartDetails)
+                                     .ThenInclude(cd => cd.Car)
+                                     .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (cart == null)
+            {
+                return NotFound("Cart not found for this user.");
+            }
+
+            // Process each cart item
+            foreach (var detail in cart.AddToCartDetails)
+            {
+                var car = await _context.Cars.FirstOrDefaultAsync(c => c.Id == detail.CarId);
+                if (car == null || car.CarQuantity < detail.Quantity)
+                {
+                    return BadRequest($"Car not available or insufficient quantity for car ID {detail.CarId}.");
+                }
+
+                // Create purchase record
+                var purchase = new Purchase
+                {
+                    UserId = userId,
+                    CarId = detail.CarId,
+                    Quantity = detail.Quantity,
+                    PurchaseDate = DateTime.UtcNow
+                };
+                _context.Purchases.Add(purchase);
+
+                // Update car quantity
+                car.CarQuantity -= detail.Quantity;
+            }
+
+            // Save all changes to the database
+            await _context.SaveChangesAsync();
+
+            // Clear the cart details after purchase
+            _context.AddToCartDetails.RemoveRange(cart.AddToCartDetails);
+            await _context.SaveChangesAsync();
+
+            return Ok("Purchase successful.");
+        }
+
+
     }
 }

@@ -6,8 +6,9 @@
     using ProjectDotNet.DataServices;
     using ProjectDotNet.Models;
     using ProjectDotNet.Models.InputModels;
-    using System.IdentityModel.Tokens.Jwt;
-    using System.Security.Claims;
+using ProjectDotNet.Models.OutPutModels;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
     using System.Security.Cryptography;
     using BC = BCrypt.Net.BCrypt;
 
@@ -81,35 +82,42 @@
         }
 
 
-        [HttpGet("getUserById")]
-        [Authorize]  // Ensures that the endpoint can only be accessed by authenticated users
-        public async Task<ActionResult<User>> GetUser(int id)
+
+    [HttpGet("getUserDetails")]
+    [Authorize]  // Ensures that the endpoint can only be accessed by authenticated users
+    public async Task<ActionResult<UserDto>> GetUserDetails()
+    {
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (currentUserId == null)
         {
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (currentUserId == null || (id.ToString() != currentUserId && !User.IsInRole("Admin")))
-            {
-                return Unauthorized("Unauthorized access.");
-            }
-
-            var user = await _context.Users
-                .AsNoTracking()
-                .Select(u => new
-                {
-                    u.Id,
-                    u.FirstName,
-                    u.LastName,
-                    u.Email,
-                    u.PhoneNumber
-                })
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
-
-            return Ok(user);
+            return Unauthorized("User must be logged in.");
         }
+
+        if (!int.TryParse(currentUserId, out int userId))
+        {
+            return BadRequest("Invalid user ID format.");
+        }
+
+        var user = await _context.Users
+            .AsNoTracking()
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber
+            })
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        return Ok(user);
+    }
+
 
 
 

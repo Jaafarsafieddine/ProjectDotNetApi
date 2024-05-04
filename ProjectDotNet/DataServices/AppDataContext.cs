@@ -45,12 +45,6 @@ namespace ProjectDotNet.DataServices
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Purchase>()
-                .HasOne(p => p.Car)
-                .WithMany()
-                .HasForeignKey(p => p.CarId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
