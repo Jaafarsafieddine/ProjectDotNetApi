@@ -6,13 +6,13 @@ namespace ProjectDotNet.Models
     {
         [Key]
         public int Id { get; set; }
-        public int userId { get; set; }
-        public int carId { get; set; }
-        public int quantity { get; set; }
+        public int UserId { get; set; }
+        public int CarId { get; set; }
+        public int Quantity { get; set; }
 
-        public int purchaseDate { get; set; }
-        public User user { get; set; }
-        public Car car { get; set; }
+        public int PurchaseDate { get; set; }
+        public User User { get; set; }
+        public Car Car { get; set; }
 
     }
 }

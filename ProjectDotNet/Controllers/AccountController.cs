@@ -28,7 +28,9 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<User>> Register(RegisterDto registerDto)
     {
         if (await _context.Users.AnyAsync(x => x.Email == registerDto.Email))
+        {
             return BadRequest("Email is already in use.");
+        }
 
         CreatePasswordHash(registerDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
@@ -38,15 +40,24 @@ public class AccountController : ControllerBase
             LastName = registerDto.LastName,
             Email = registerDto.Email,
             Password = Convert.ToBase64String(passwordHash),
-            PhoneNumber = registerDto.PhoneNumber,
-            PasswordSalt = Convert.ToBase64String(passwordSalt), // Ensure this line is present
+            PasswordSalt = Convert.ToBase64String(passwordSalt),
+            PhoneNumber = registerDto.PhoneNumber
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        // Create an empty cart for the user
+        var cart = new AddToCart
+        {
+            UserId = user.Id
+        };
+
+        _context.AddToCarts.Add(cart);
+        await _context.SaveChangesAsync();
+
         var token = CreateToken(user);
-        return StatusCode(201, new { token });
+        return StatusCode(201, new { user.Id, token });
     }
 
     [HttpPost("login")]
@@ -68,6 +79,29 @@ public class AccountController : ControllerBase
         return Ok(new { token });
     }
 
+
+    [HttpGet("getUserById")]
+    public async Task<ActionResult<User>> GetUser(int id)
+    {
+        var user = await _context.Users
+            .AsNoTracking()  // Use AsNoTracking for read-only operations for better performance
+            .Select(u => new
+            {
+                u.Id,
+                u.FirstName,
+                u.LastName,
+                u.Email,
+                u.PhoneNumber
+            })
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        return Ok(user);
+    }
 
 
 
@@ -113,7 +147,7 @@ public class AccountController : ControllerBase
     }
 
 
-
+        
 
 }
 

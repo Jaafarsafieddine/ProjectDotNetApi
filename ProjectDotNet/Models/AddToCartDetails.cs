@@ -6,10 +6,10 @@ namespace ProjectDotNet.Models
     {
         [Key]
         public int Id { get; set; }
-        public int cartId { get; set; }
-        public int carId { get; set; }
-        public int quantity { get; set; }
-        public AddToCart cart { get; set; }
-        public Car car { get; set; }
+        public int CartId { get; set; }
+        public int CarId { get; set; }
+        public int Quantity { get; set; }
+        public AddToCart Cart { get; set; }
+        public Car Car { get; set; }
     }
 }

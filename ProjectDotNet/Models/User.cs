@@ -14,6 +14,7 @@ namespace ProjectDotNet.Models
         public int PhoneNumber { get; set; }
         public string PasswordSalt { get; set; }  // Store salt as a base64 string
 
+        public virtual ICollection<AddToCart> AddToCarts { get; set; }
 
     }
 }
