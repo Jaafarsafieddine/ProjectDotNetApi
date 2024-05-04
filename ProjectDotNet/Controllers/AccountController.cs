@@ -43,7 +43,7 @@ using System.Security.Claims;
                 Email = registerDto.Email,
                 Password = Convert.ToBase64String(passwordHash),
                 PasswordSalt = Convert.ToBase64String(passwordSalt),
-                PhoneNumber = registerDto.PhoneNumber
+                PhoneNumber = registerDto.PhoneNumber.ToString(),
             };
 
             _context.Users.Add(user);
@@ -118,6 +118,33 @@ using System.Security.Claims;
         return Ok(user);
     }
 
+    [HttpPatch("updateUserDetails")]
+    [Authorize] // Ensures that only authenticated users can access this endpoint
+    public async Task<IActionResult> UpdateUserDetails([FromBody] UpdateUserDto updateUserDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userId) || !int.TryParse(userId, out int currentUserId))
+        {
+            return Unauthorized("Invalid user credentials.");
+        }
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Update user details
+        user.FirstName = updateUserDto.FirstName ?? user.FirstName;
+        user.LastName = updateUserDto.LastName ?? user.LastName;
+        user.Email = updateUserDto.Email ?? user.Email;
+        user.PhoneNumber = updateUserDto.PhoneNumber ?? user.PhoneNumber;
+
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return Ok("User updated successfully.");
+    }
 
 
 
