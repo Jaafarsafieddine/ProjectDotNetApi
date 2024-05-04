@@ -9,7 +9,9 @@ namespace ProjectDotNet.Models
         public int CartId { get; set; }
         public int CarId { get; set; }
         public int Quantity { get; set; }
-        public AddToCart Cart { get; set; }
-        public Car Car { get; set; }
+
+        public virtual AddToCart Cart { get; set; }
+        public virtual Car Car { get; set; }
+
     }
 }

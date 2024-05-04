@@ -24,8 +24,8 @@ namespace ProjectDotNet.DataServices
             modelBuilder.Entity<AddToCartDetails>(entity =>
             {
                 entity.HasOne(d => d.Cart)
-                    .WithMany()
-                    .HasForeignKey(d => d.CartId)
+                    .WithMany(p => p.AddToCartDetails)
+                    .HasForeignKey(d => d.CartId)  // Ensure this uses the new FK name
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(d => d.Car)
