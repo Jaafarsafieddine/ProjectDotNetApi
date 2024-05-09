@@ -12,9 +12,12 @@ namespace ProjectDotNet.Models
         public string Password { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
-        public string PasswordSalt { get; set; }  // Store salt as a base64 string
+        public string PasswordSalt { get; set; }  
 
         public virtual ICollection<AddToCart> AddToCarts { get; set; }
+
+        public int IsAdmin { get; set; } = 0;
+
 
     }
 }

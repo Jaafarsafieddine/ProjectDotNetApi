@@ -64,7 +64,7 @@ namespace ProjectDotNet.Controllers
 
         [HttpPost("addToCart")]
         /*[Authorize]*/
-        public async Task<ActionResult> AddToCart(AddToCartDto addToCartDto)
+        public async Task<ActionResult> AddToCart([FromBody] AddToCartDto addToCartDto)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -118,8 +118,8 @@ namespace ProjectDotNet.Controllers
 
 
         [HttpDelete("removeFromCart")]
-        [Authorize] // Ensure this endpoint requires authentication
-        public async Task<ActionResult> RemoveFromCart(int carId)
+        [Authorize]
+        public async Task<ActionResult> RemoveFromCart([FromBody] RemoveFromCartDto removeFromCartDto)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -144,7 +144,7 @@ namespace ProjectDotNet.Controllers
             }
 
             // Find the cart detail that includes the car to remove
-            var cartDetail = cart.AddToCartDetails.FirstOrDefault(cd => cd.CarId == carId);
+            var cartDetail = cart.AddToCartDetails.FirstOrDefault(cd => cd.CarId == removeFromCartDto.CarId);
             if (cartDetail == null)
             {
                 return NotFound("Car not found in cart.");
@@ -201,8 +201,9 @@ namespace ProjectDotNet.Controllers
                     UserId = userId,
                     CarId = detail.CarId,
                     Quantity = detail.Quantity,
-                    PurchaseDate = DateTime.UtcNow
-                };
+                    PurchaseDate = DateTime.UtcNow.ToString("MMMM dd, yyyy HH:mm")
+
+            };
                 _context.Purchases.Add(purchase);
 
                 // Update car quantity

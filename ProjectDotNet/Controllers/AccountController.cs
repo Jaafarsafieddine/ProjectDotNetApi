@@ -36,14 +36,15 @@ using System.Security.Claims;
 
             CreatePasswordHash(registerDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
-            var user = new User
-            {
-                FirstName = registerDto.FirstName,
-                LastName = registerDto.LastName,
-                Email = registerDto.Email,
-                Password = Convert.ToBase64String(passwordHash),
-                PasswordSalt = Convert.ToBase64String(passwordSalt),
-                PhoneNumber = registerDto.PhoneNumber.ToString(),
+        var user = new User
+        {
+            FirstName = registerDto.FirstName,
+            LastName = registerDto.LastName,
+            Email = registerDto.Email,
+            Password = Convert.ToBase64String(passwordHash),
+            PasswordSalt = Convert.ToBase64String(passwordSalt),
+            PhoneNumber = registerDto.PhoneNumber.ToString(),
+            IsAdmin = 0,
             };
 
             _context.Users.Add(user);
@@ -84,7 +85,7 @@ using System.Security.Claims;
 
 
     [HttpGet("getUserDetails")]
-    [Authorize]  // Ensures that the endpoint can only be accessed by authenticated users
+    [Authorize]  
     public async Task<ActionResult<UserDto>> GetUserDetails()
     {
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -145,6 +146,66 @@ using System.Security.Claims;
 
         return Ok("User updated successfully.");
     }
+    [HttpGet("all-users")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
+    {
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userRole) || userRole != "Admin")
+        {
+            return BadRequest("Unauthorized: Only admins can view user details.");
+        }
+
+        var users = await _context.Users
+            .Where(u => u.IsAdmin == 0) 
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber
+            })
+            .ToListAsync();
+
+        return Ok(users);
+    }
+
+    [HttpDelete("delete-user/{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userRole) || userRole != "Admin")
+        {
+            return BadRequest("Unauthorized: Only admins can delete users.");
+        }
+
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+        {
+            return NotFound($"User with ID {id} not found.");
+        }
+
+        try
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // Log the exception details here to diagnose further
+            return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting data");
+        }
+
+        return Ok($"User with ID {id} has been deleted.");
+    }
+
+
+
+
 
 
 
@@ -155,6 +216,7 @@ using System.Security.Claims;
     {
         new Claim(ClaimTypes.Name, user.Email),
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+         new Claim(ClaimTypes.Role, user.IsAdmin == 1 ? "Admin" : "User"),
     };
 
         var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

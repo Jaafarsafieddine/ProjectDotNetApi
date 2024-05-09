@@ -103,6 +103,76 @@ namespace ProjectDotNet.Controllers
         }
 
 
+        [HttpPost("create-car")]
+        [Authorize] 
+        public async Task<IActionResult> CreateCar([FromBody] Car newCar)
+        {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userRole) || userRole != "Admin")
+            {
+                return BadRequest("Unauthorized: Only admins can create cars.");
+            }
+
+            if (newCar == null)
+            {
+                return BadRequest("Car data must be provided.");
+            }
+
+            _context.Cars.Add(newCar);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetCarById), new { id = newCar.Id }, newCar);
+        }
+
+
+
+
+
+        [HttpPut("update-car/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateCar(int id, [FromBody] Car carUpdate)
+        {
+            if (carUpdate == null)
+            {
+                return BadRequest("Car update data must be provided.");
+            }
+
+            var car = await _context.Cars.FirstOrDefaultAsync(c => c.Id == id);
+            if (car == null)
+            {
+                return NotFound($"Car with ID {id} not found.");
+            }
+
+            car.CarName = carUpdate.CarName;
+            car.CarModel = carUpdate.CarModel;
+            // Add other fields as necessary
+
+            _context.Cars.Update(car);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+
+
+
+        [HttpDelete("delete-car/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteCar(int id)
+        {
+            var car = await _context.Cars.FindAsync(id);
+            if (car == null)
+            {
+                return NotFound($"Car with ID {id} not found.");
+            }
+
+            _context.Cars.Remove(car);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+
+
 
     }
 }

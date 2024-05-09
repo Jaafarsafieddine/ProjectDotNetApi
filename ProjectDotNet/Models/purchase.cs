@@ -11,7 +11,7 @@ namespace ProjectDotNet.Models
         public int UserId { get; set; }
         public int CarId { get; set; }
         public int Quantity { get; set; }
-        public DateTime PurchaseDate { get; set; }
+        public String PurchaseDate { get; set; }
         public User User { get; set; }
         public Car Car { get; set; }
 
