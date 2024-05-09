@@ -146,6 +146,8 @@ using System.Security.Claims;
 
         return Ok("User updated successfully.");
     }
+
+
     [HttpGet("all-users")]
     [Authorize]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()

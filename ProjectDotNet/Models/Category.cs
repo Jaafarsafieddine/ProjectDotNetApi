@@ -7,7 +7,7 @@ namespace ProjectDotNet.Models
         [Key]
         public int Id { get; set; }
         public string CategoryName { get; set; }
-        public string? subCategory { get; set; }
+        public string? parentCategory { get; set; }
         public ICollection<Car> Cars { get; set; }
     }
 }
