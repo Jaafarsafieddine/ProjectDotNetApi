@@ -203,6 +203,41 @@ using System.Security.Claims;
         return Ok($"User with ID {id} has been deleted.");
     }
 
+    [HttpGet("user-purchases/{userId}")]
+    [Authorize] 
+    public async Task<ActionResult<IEnumerable<UserPurchaseDto>>> GetUserPurchases(int userId)
+    {
+        
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (string.IsNullOrWhiteSpace(userRole) || userRole != "Admin")
+        {
+            return BadRequest("Unauthorized: Only admins can access user purchase details.");
+        }
+
+        
+        var userPurchases = await _context.Purchases
+            .Where(p => p.UserId == userId)
+            .Include(p => p.Car) 
+            .Select(p => new UserPurchaseDto
+            {
+                PurchaseId = p.Id,
+                CarId = p.CarId,
+                CarName = p.Car.CarName,
+                Quantity = p.Quantity,
+                PurchaseDate = p.PurchaseDate,
+                CarModel = p.Car.CarModel,
+                CarImage = p.Car.CarImage
+            })
+            .ToListAsync();
+
+        if (userPurchases == null || !userPurchases.Any())
+        {
+            return NotFound("No purchases found for this user.");
+        }
+
+        return Ok(userPurchases);
+    }
+
 
 
 
