@@ -20,7 +20,7 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 builder.Services.AddDbContext<AppDataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+builder.Services.AddScoped<StatisticsService>();
 
 //JWT
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
